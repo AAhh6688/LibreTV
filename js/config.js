@@ -8,7 +8,9 @@ const MAX_HISTORY_ITEMS = 5;
 // 注意：PASSWORD 环境变量是必需的，所有部署都必须设置密码以确保安全
 const PASSWORD_CONFIG = {
     localStorageKey: 'passwordVerified',  // 存储验证状态的键名
-    verificationTTL: 90 * 24 * 60 * 60 * 1000  // 验证有效期（90天，约3个月）
+    verificationTTL: 90 * 24 * 60 * 60 * 1000,  // 验证有效期（90天，约3个月）
+    // 新增：密码验证失败提示文本
+    errorMessage: '密码错误，请重新输入'
 };
 
 // 网站信息配置
@@ -19,6 +21,55 @@ const SITE_CONFIG = {
     logo: 'image/logo.png',
     version: '1.0.3'
 };
+
+// 补充：密码验证核心逻辑（新增代码）
+const PasswordValidator = {
+    // 验证密码是否正确
+    async validate(inputPassword) {
+        try {
+            // 1. 检查环境变量是否配置（关键：如果没有PASSWORD环境变量，任何输入都会提示错误）
+            if (!process?.env?.PASSWORD) {
+                throw new Error('服务器未配置密码，请联系管理员');
+            }
+
+            // 2. 比较输入密码与环境变量存储的密码（区分大小写）
+            // 注意：实际生产环境建议对密码进行哈希处理（如md5/sha256）后再比较
+            const isCorrect = inputPassword === process.env.PASSWORD;
+
+            // 3. 验证通过则记录状态到localStorage
+            if (isCorrect) {
+                const expiryTime = Date.now() + PASSWORD_CONFIG.verificationTTL;
+                localStorage.setItem(
+                    PASSWORD_CONFIG.localStorageKey,
+                    JSON.stringify({ verified: true, expiry: expiryTime })
+                );
+            }
+
+            return { success: isCorrect, message: isCorrect ? '验证通过' : PASSWORD_CONFIG.errorMessage };
+        } catch (error) {
+            console.error('密码验证失败:', error);
+            return { success: false, message: '验证过程出错：' + error.message };
+        }
+    },
+
+    // 检查是否已通过验证（有效期内）
+    checkVerifiedStatus() {
+        const stored = localStorage.getItem(PASSWORD_CONFIG.localStorageKey);
+        if (!stored) return false;
+
+        try {
+            const { verified, expiry } = JSON.parse(stored);
+            // 验证状态为true且未过期
+            return verified && Date.now() < expiry;
+        } catch (error) {
+            console.error('解析验证状态失败:', error);
+            return false;
+        }
+    }
+};
+
+// 暴露验证工具到全局，供页面调用
+window.PasswordValidator = PasswordValidator;
 
 // API站点配置
 const API_SITES = {
@@ -292,4 +343,3 @@ function isContentBlocked(title, category) {
     
     return hasBlockedKeyword || isBlockedCategory;
 }</span>
-
