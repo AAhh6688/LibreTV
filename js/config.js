@@ -230,18 +230,3 @@ const CUSTOM_API_CONFIG = {
 
 // 隐藏内置黄色采集站API的变量
 const HIDE_BUILTIN_ADULT_APIS = true;  // 强制隐藏成人内容且无法修改
-
-<span style="color: blue;">// 内容过滤检查函数
-function isContentBlocked(title, category) {
-    // 检查是否包含屏蔽关键词
-    const hasBlockedKeyword = CUSTOM_API_CONFIG.contentFilter.blockedKeywords.some(keyword => 
-        title.includes(keyword)
-    );
-
-    // 检查是否属于屏蔽分类
-    const isBlockedCategory = CUSTOM_API_CONFIG.contentFilter.blockedCategories.some(cat => 
-        category.includes(cat)
-    );
-
-    return hasBlockedKeyword || isBlockedCategory;
-}</span>
