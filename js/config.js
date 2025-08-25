@@ -216,69 +216,19 @@ const HIDE_BUILTIN_ADULT_APIS = true;
 const ADULT_CONTENT_BLOCKER = {
     // 核心开关：强制开启屏蔽，不提供关闭选项
     enabled: true,
-    
-    // 屏蔽的内容分类列表
-    blockedCategories: [
-        '三级片',
-        '伦理片',
-        '港台三级',
-        '西方伦理',
-        '韩国伦理',
-        '情色片',
-        '成人电影'
-    ],
-    
-    // 屏蔽的标题关键词
-    blockedKeywords: [
-        '三级',
-        '伦理',
-        '色情',
-        '情色',
-        'AV',
-        '成人',
-        '金瓶梅',
-        '玉蒲团',
-        '肉蒲团'
-    ],
-    
-    // 检查内容是否属于黄色内容
-    isAdultContent(content) {
-        // 由于enabled强制为true，无需检查开关状态
-        
-        // 检查内容分类
-        if (content.category) {
-            const categories = Array.isArray(content.category) ? content.category : [content.category];
-            if (categories.some(cat => 
-                this.blockedCategories.some(blocked => cat.includes(blocked))
-            )) {
-                return true;
-            }
-        }
-        
-        // 检查标题关键词
-        if (content.title) {
-            const lowerTitle = content.title.toLowerCase();
-            if (this.blockedKeywords.some(keyword => 
-                lowerTitle.includes(keyword.toLowerCase())
-            )) {
-                return true;
-            }
-        }
-        
-        return false;
-    },
-    
-    // 过滤内容列表，移除黄色内容
-    filterContentList(contentList) {
-        return contentList.filter(content => !this.isAdultContent(content));
-    }
-};
 
-// 防止外部修改屏蔽配置（冻结对象，无法修改属性）
-Object.freeze(ADULT_CONTENT_BLOCKER);
-Object.freeze(ADULT_CONTENT_BLOCKER.blockedCategories);
-Object.freeze(ADULT_CONTENT_BLOCKER.blockedKeywords);
+// 示例内容列表
+const movies = [
+    { title: "聊斋志异", id: 1 },
+    { title: "正常电影", id: 2 },
+    { title: "金瓶梅续集", id: 3 },
+    { title: "成人版动画", id: 4 }
+];
 
-// 暴露到全局使用
-window.ADULT_CONTENT_BLOCKER = ADULT_CONTENT_BLOCKER;
+// 过滤后的内容列表（仅保留不含屏蔽关键词的内容）
+const filteredMovies = TITLE_FILTER_CONFIG.filterContentList(movies);
+// filteredMovies 结果将只包含 { title: "正常电影", id: 2 }
 
+// 单独检查某个标题
+const isBlocked = TITLE_FILTER_CONFIG.hasBlockedKeyword("玉蒲团传奇");
+// isBlocked 结果为 true（会被屏蔽）
