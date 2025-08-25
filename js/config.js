@@ -197,18 +197,51 @@ const SECURITY_CONFIG = {
     maxQueryLength: 100,        // 最大搜索长度
     // allowedApiDomains 不再需要，因为所有请求都通过内部代理
 };
-
 // 添加多个自定义API源的配置
 const CUSTOM_API_CONFIG = {
     separator: ',',           // 分隔符
-    maxSources: 5,            // 最大允许的自定义源数量
+    maxSources: 40,           // 最大允许的自定义源数量
     testTimeout: 5000,        // 测试超时时间(毫秒)
     namePrefix: 'Custom-',    // 自定义源名称前缀
     validateUrl: true,        // 验证URL格式
     cacheResults: true,       // 缓存测试结果
     cacheExpiry: 5184000000,  // 缓存过期时间(2个月)
-    adultPropName: 'isAdult' // 用于标记成人内容的属性名
+    adultPropName: 'isAdult', // 用于标记成人内容的属性名
+    <span style="color: blue;">// 内容过滤配置
+    contentFilter: {
+        enabled: true,        // 默认开启过滤且无法关闭
+        // 屏蔽关键词列表
+        blockedKeywords: [
+            '成人版',
+            '聊斋',
+            '金瓶梅',
+            '玉蒲团',
+            '肉蒲团'
+        ],
+        // 屏蔽分类列表
+        blockedCategories: [
+            '伦理片',
+            '港台三级',
+            '西方伦理',
+            '韩国伦理'
+        ]
+    }</span>
 };
 
 // 隐藏内置黄色采集站API的变量
-const HIDE_BUILTIN_ADULT_APIS = false;
+const HIDE_BUILTIN_ADULT_APIS = true;  // 强制隐藏成人内容且无法修改
+
+<span style="color: blue;">// 内容过滤检查函数
+function isContentBlocked(title, category) {
+    // 检查是否包含屏蔽关键词
+    const hasBlockedKeyword = CUSTOM_API_CONFIG.contentFilter.blockedKeywords.some(keyword => 
+        title.includes(keyword)
+    );
+    
+    // 检查是否属于屏蔽分类
+    const isBlockedCategory = CUSTOM_API_CONFIG.contentFilter.blockedCategories.some(cat => 
+        category.includes(cat)
+    );
+    
+    return hasBlockedKeyword || isBlockedCategory;
+}</span>
