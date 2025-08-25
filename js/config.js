@@ -216,19 +216,3 @@ const HIDE_BUILTIN_ADULT_APIS = true;
 const ADULT_CONTENT_BLOCKER = {
     // 核心开关：强制开启屏蔽，不提供关闭选项
     enabled: true,
-
-// 示例内容列表
-const movies = [
-    { title: "聊斋志异", id: 1 },
-    { title: "正常电影", id: 2 },
-    { title: "金瓶梅续集", id: 3 },
-    { title: "成人版动画", id: 4 }
-];
-
-// 过滤后的内容列表（仅保留不含屏蔽关键词的内容）
-const filteredMovies = TITLE_FILTER_CONFIG.filterContentList(movies);
-// filteredMovies 结果将只包含 { title: "正常电影", id: 2 }
-
-// 单独检查某个标题
-const isBlocked = TITLE_FILTER_CONFIG.hasBlockedKeyword("玉蒲团传奇");
-// isBlocked 结果为 true（会被屏蔽）
