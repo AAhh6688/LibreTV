@@ -212,3 +212,135 @@ const CUSTOM_API_CONFIG = {
 
 // 隐藏内置黄色采集站API的变量
 const HIDE_BUILTIN_ADULT_APIS = true;
+// 内容过滤配置
+const CONTENT_FILTER_CONFIG = {
+    // 强制开启过滤且不允许关闭
+    enabled: true,
+    
+    // 屏蔽的内容分类
+    blockedCategories: [
+        '伦理片',
+        '三级片',
+        '港台三级',
+        '西方伦理',
+        '韩国伦理',
+        '情色片',
+        '成人电影'
+    ],
+    
+    // 屏蔽的标题关键词
+    blockedKeywords: [
+        '成人',
+        '色情',
+        '情色',
+        'AV',
+        '三级',
+        '伦理',
+        '金瓶梅',
+        '玉蒲团',
+        '肉蒲团',
+        '聊斋艳谭',
+        '限制级'
+    ],
+    
+    // 屏蔽的演员/导演关键词
+    blockedPersons: [
+        'AV女优',
+        '色情演员'
+    ]
+};
+
+// 内容过滤工具类
+const ContentFilter = {
+    /**
+     * 检查内容是否需要被屏蔽
+     * @param {Object} content - 内容信息对象
+     * @param {string} content.title - 内容标题
+     * @param {string|string[]} content.category - 内容分类
+     * @param {string|string[]} [content.actors] - 演员列表
+     * @param {string|string[]} [content.directors] - 导演列表
+     * @returns {boolean} - 是否需要屏蔽
+     */
+    isBlocked(content) {
+        // 如果过滤功能被禁用，直接返回不屏蔽
+        if (!CONTENT_FILTER_CONFIG.enabled) {
+            return false;
+        }
+        
+        // 检查分类
+        if (this.checkCategory(content.category)) {
+            return true;
+        }
+        
+        // 检查标题
+        if (this.checkKeyword(content.title)) {
+            return true;
+        }
+        
+        // 检查演员
+        if (content.actors && this.checkPersons(content.actors)) {
+            return true;
+        }
+        
+        // 检查导演
+        if (content.directors && this.checkPersons(content.directors)) {
+            return true;
+        }
+        
+        return false;
+    },
+    
+    /**
+     * 检查分类是否需要屏蔽
+     * @param {string|string[]} category - 内容分类
+     * @returns {boolean} - 是否需要屏蔽
+     */
+    checkCategory(category) {
+        const categories = Array.isArray(category) ? category : [category];
+        return categories.some(cat => 
+            CONTENT_FILTER_CONFIG.blockedCategories.some(blocked => 
+                cat.includes(blocked)
+            )
+        );
+    },
+    
+    /**
+     * 检查标题是否包含屏蔽关键词
+     * @param {string} title - 内容标题
+     * @returns {boolean} - 是否需要屏蔽
+     */
+    checkKeyword(title) {
+        if (!title) return false;
+        const lowerTitle = title.toLowerCase();
+        return CONTENT_FILTER_CONFIG.blockedKeywords.some(keyword => 
+            lowerTitle.includes(keyword.toLowerCase())
+        );
+    },
+    
+    /**
+     * 检查人员是否包含屏蔽关键词
+     * @param {string|string[]} persons - 人员列表
+     * @returns {boolean} - 是否需要屏蔽
+     */
+    checkPersons(persons) {
+        const personList = Array.isArray(persons) ? persons : [persons];
+        return personList.some(person => 
+            CONTENT_FILTER_CONFIG.blockedPersons.some(blocked => 
+                person.includes(blocked)
+            )
+        );
+    },
+    
+    /**
+     * 过滤内容列表
+     * @param {Object[]} contentList - 内容列表
+     * @returns {Object[]} - 过滤后的内容列表
+     */
+    filterContentList(contentList) {
+        return contentList.filter(content => !this.isBlocked(content));
+    }
+};
+
+// 暴露到全局
+window.ContentFilter = ContentFilter;
+
