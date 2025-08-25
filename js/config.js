@@ -208,17 +208,88 @@ const SECURITY_CONFIG = {
     // allowedApiDomains 不再需要，因为所有请求都通过内部代理
 };
 
+// 优化后的正则表达式模式
+const M3U8_PATTERN = /\$https?:\/\/[^"'\s]+?\.m3u8/g;
+
+// 添加自定义播放器URL
+const CUSTOM_PLAYER_URL = 'player.html'; // 使用相对路径引用本地player.html
+
+// 增加视频播放相关配置
+const PLAYER_CONFIG = {
+    autoplay: true,
+    allowFullscreen: true,
+    width: '100%',
+    height: '600',
+    timeout: 15000,  // 播放器加载超时时间
+    filterAds: true,  // 是否启用广告过滤
+    autoPlayNext: true,  // 默认启用自动连播功能
+    adFilteringEnabled: true, // 默认开启分片广告过滤
+    adFilteringStorage: 'adFilteringEnabled' // 存储广告过滤设置的键名
+};
+
+// 增加错误信息本地化
+const ERROR_MESSAGES = {
+    NETWORK_ERROR: '网络连接错误，请检查网络设置',
+    TIMEOUT_ERROR: '请求超时，服务器响应时间过长',
+    API_ERROR: 'API接口返回错误，请尝试更换数据源',
+    PLAYER_ERROR: '播放器加载失败，请尝试其他视频源',
+    UNKNOWN_ERROR: '发生未知错误，请刷新页面重试'
+};
+
+// 添加进一步安全设置
+const SECURITY_CONFIG = {
+    enableXSSProtection: true,  // 是否启用XSS保护
+    sanitizeUrls: true,         // 是否清理URL
+    maxQueryLength: 100,        // 最大搜索长度
+    // allowedApiDomains 不再需要，因为所有请求都通过内部代理
+};
+
 // 添加多个自定义API源的配置
 const CUSTOM_API_CONFIG = {
     separator: ',',           // 分隔符
-    maxSources: 5,            // 最大允许的自定义源数量
+    maxSources: 40,           // 最大允许的自定义源数量
     testTimeout: 5000,        // 测试超时时间(毫秒)
     namePrefix: 'Custom-',    // 自定义源名称前缀
     validateUrl: true,        // 验证URL格式
     cacheResults: true,       // 缓存测试结果
     cacheExpiry: 5184000000,  // 缓存过期时间(2个月)
-    adultPropName: 'isAdult' // 用于标记成人内容的属性名
+    adultPropName: 'isAdult', // 用于标记成人内容的属性名
+    <span style="color: blue;">// 内容过滤配置
+    contentFilter: {
+        enabled: true,        // 默认开启过滤且无法关闭
+        // 屏蔽关键词列表
+        blockedKeywords: [
+            '成人版',
+            '聊斋',
+            '金瓶梅',
+            '玉蒲团',
+            '肉蒲团'
+        ],
+        // 屏蔽分类列表
+        blockedCategories: [
+            '伦理片',
+            '港台三级',
+            '西方伦理',
+            '韩国伦理'
+        ]
+    }</span>
 };
 
 // 隐藏内置黄色采集站API的变量
-const HIDE_BUILTIN_ADULT_APIS = false;
+const HIDE_BUILTIN_ADULT_APIS = true;  // 强制隐藏成人内容且无法修改
+
+<span style="color: blue;">// 内容过滤检查函数
+function isContentBlocked(title, category) {
+    // 检查是否包含屏蔽关键词
+    const hasBlockedKeyword = CUSTOM_API_CONFIG.contentFilter.blockedKeywords.some(keyword => 
+        title.includes(keyword)
+    );
+    
+    // 检查是否属于屏蔽分类
+    const isBlockedCategory = CUSTOM_API_CONFIG.contentFilter.blockedCategories.some(cat => 
+        category.includes(cat)
+    );
+    
+    return hasBlockedKeyword || isBlockedCategory;
+}</span>
+
