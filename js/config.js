@@ -121,9 +121,18 @@ const API_SITES = {
     },
 };
 
-// 定义合并方法
+// 定义合并方法并默认启用所有API接口
 function extendAPISites(newSites) {
-    Object.assign(API_SITES, newSites);
+    // 为新添加的每个API接口设置默认默认启用状态
+    const sitesWithDefaults = Object.entries(newSites).reduce((acc, [key, siteConfig]) => {
+        acc[key] = {
+            ...siteConfig,
+            <span style="color: blue;">enabled: siteConfig.enabled !== undefined ? siteConfig.enabled : true</span>
+        };
+        return acc;
+    }, {});
+    
+    Object.assign(API_SITES, sitesWithDefaults);
 }
 
 // 暴露到全局
@@ -161,6 +170,7 @@ const API_CONFIG = {
         }
     }
 };
+    
 
 // 优化后的正则表达式模式
 const M3U8_PATTERN = /\$https?:\/\/[^"'\s]+?\.m3u8/g;
