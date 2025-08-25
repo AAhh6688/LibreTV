@@ -8,9 +8,7 @@ const MAX_HISTORY_ITEMS = 5;
 // 注意：PASSWORD 环境变量是必需的，所有部署都必须设置密码以确保安全
 const PASSWORD_CONFIG = {
     localStorageKey: 'passwordVerified',  // 存储验证状态的键名
-    verificationTTL: 90 * 24 * 60 * 60 * 1000,  // 验证有效期（90天，约3个月）
-    // 新增：密码验证失败提示文本
-    errorMessage: '密码错误，请重新输入'
+    verificationTTL: 90 * 24 * 60 * 60 * 1000  // 验证有效期（90天，约3个月）
 };
 
 // 网站信息配置
@@ -21,55 +19,6 @@ const SITE_CONFIG = {
     logo: 'image/logo.png',
     version: '1.0.3'
 };
-
-// 补充：密码验证核心逻辑（新增代码）
-const PasswordValidator = {
-    // 验证密码是否正确
-    async validate(inputPassword) {
-        try {
-            // 1. 检查环境变量是否配置（关键：如果没有PASSWORD环境变量，任何输入都会提示错误）
-            if (!process?.env?.PASSWORD) {
-                throw new Error('服务器未配置密码，请联系管理员');
-            }
-
-            // 2. 比较输入密码与环境变量存储的密码（区分大小写）
-            // 注意：实际生产环境建议对密码进行哈希处理（如md5/sha256）后再比较
-            const isCorrect = inputPassword === process.env.PASSWORD;
-
-            // 3. 验证通过则记录状态到localStorage
-            if (isCorrect) {
-                const expiryTime = Date.now() + PASSWORD_CONFIG.verificationTTL;
-                localStorage.setItem(
-                    PASSWORD_CONFIG.localStorageKey,
-                    JSON.stringify({ verified: true, expiry: expiryTime })
-                );
-            }
-
-            return { success: isCorrect, message: isCorrect ? '验证通过' : PASSWORD_CONFIG.errorMessage };
-        } catch (error) {
-            console.error('密码验证失败:', error);
-            return { success: false, message: '验证过程出错：' + error.message };
-        }
-    },
-
-    // 检查是否已通过验证（有效期内）
-    checkVerifiedStatus() {
-        const stored = localStorage.getItem(PASSWORD_CONFIG.localStorageKey);
-        if (!stored) return false;
-
-        try {
-            const { verified, expiry } = JSON.parse(stored);
-            // 验证状态为true且未过期
-            return verified && Date.now() < expiry;
-        } catch (error) {
-            console.error('解析验证状态失败:', error);
-            return false;
-        }
-    }
-};
-
-// 暴露验证工具到全局，供页面调用
-window.PasswordValidator = PasswordValidator;
 
 // API站点配置
 const API_SITES = {
@@ -172,14 +121,14 @@ const API_SITES = {
     },
 };
 
-// 定义合并方法
+// 定义合并方法，确保所有API接口默认开启
 function extendAPISites(newSites) {
-    // 为每个新添加的API站点设置默认启用状态
-    const sitesWithEnabled = Object.entries(newSites).reduce((acc, [key, site]) => {
+    // 遍历新添加的API站点，为每个站点添加默认启用状态
+    const sitesWithEnabled = Object.entries(newSites).reduce((acc, [key, siteConfig]) => {
         acc[key] = {
-            ...site,
-            // 如果站点未指定enabled属性，则默认设为true（选中状态）
-            enabled: site.enabled !== undefined ? site.enabled : true
+            ...siteConfig,
+            // 如果站点未指定enabled属性，则默认设为true（开启状态）
+            enabled: siteConfig.enabled !== undefined ? siteConfig.enabled : true
         };
         return acc;
     }, {});
@@ -190,7 +139,6 @@ function extendAPISites(newSites) {
 // 暴露到全局
 window.API_SITES = API_SITES;
 window.extendAPISites = extendAPISites;
-
 
 // 添加聚合搜索的配置选项
 const AGGREGATED_SEARCH_CONFIG = {
@@ -221,42 +169,6 @@ const API_CONFIG = {
             'Accept': 'application/json'
         }
     }
-};
-
-// 优化后的正则表达式模式
-const M3U8_PATTERN = /\$https?:\/\/[^"'\s]+?\.m3u8/g;
-
-// 添加自定义播放器URL
-const CUSTOM_PLAYER_URL = 'player.html'; // 使用相对路径引用本地player.html
-
-// 增加视频播放相关配置
-const PLAYER_CONFIG = {
-    autoplay: true,
-    allowFullscreen: true,
-    width: '100%',
-    height: '600',
-    timeout: 15000,  // 播放器加载超时时间
-    filterAds: true,  // 是否启用广告过滤
-    autoPlayNext: true,  // 默认启用自动连播功能
-    adFilteringEnabled: true, // 默认开启分片广告过滤
-    adFilteringStorage: 'adFilteringEnabled' // 存储广告过滤设置的键名
-};
-
-// 增加错误信息本地化
-const ERROR_MESSAGES = {
-    NETWORK_ERROR: '网络连接错误，请检查网络设置',
-    TIMEOUT_ERROR: '请求超时，服务器响应时间过长',
-    API_ERROR: 'API接口返回错误，请尝试更换数据源',
-    PLAYER_ERROR: '播放器加载失败，请尝试其他视频源',
-    UNKNOWN_ERROR: '发生未知错误，请刷新页面重试'
-};
-
-// 添加进一步安全设置
-const SECURITY_CONFIG = {
-    enableXSSProtection: true,  // 是否启用XSS保护
-    sanitizeUrls: true,         // 是否清理URL
-    maxQueryLength: 100,        // 最大搜索长度
-    // allowedApiDomains 不再需要，因为所有请求都通过内部代理
 };
 
 // 优化后的正则表达式模式
