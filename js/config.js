@@ -237,11 +237,11 @@ function isContentBlocked(title, category) {
     const hasBlockedKeyword = CUSTOM_API_CONFIG.contentFilter.blockedKeywords.some(keyword => 
         title.includes(keyword)
     );
-    
+
     // 检查是否属于屏蔽分类
     const isBlockedCategory = CUSTOM_API_CONFIG.contentFilter.blockedCategories.some(cat => 
         category.includes(cat)
     );
-    
+
     return hasBlockedKeyword || isBlockedCategory;
 }</span>
